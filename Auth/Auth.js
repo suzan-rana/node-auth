@@ -1,11 +1,19 @@
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+
+//for jwt
+const SECRET_KEY = 'ae897635ca091a275aeeba4f322a4f4e21bdfe97e81afde5d169b89f3ac3f83bbceff7'
+
+//require("crypto").randomBytes(35).toString("hex")
 
 //authentication: username, password, id, role[admin, basic]
-// -----register a user,
-// -----login a user,
+// -----register a user, hashing a password , bcrypt.hash(password, 10)
+// -----login a user, and hashing a pssword bcrypt.compare(password, user.pass)
 // ----- change a user role, ==> update User Role,
 // ----- delete a user
+
+// we generate a token using jwt.sign({id, username, role}, secret_key, expiresIn) and set a cookie of client using: res.cookie('jwt', token, {options})
 
 
 
@@ -25,9 +33,22 @@ exports.register = async (req, res, next) => {
                 password: hashedPassword
             })
             .then( user => {
+                const maxAge = 3 * 50 * 50;
+                const token = jwt.sign({
+                    id: user._id,
+                    username, 
+                    role: user.role
+                }, SECRET_KEY,
+                {
+                    expiresIn: maxAge, //3hrs in sec.
+                })
+                res.cookie('jwt', token, {
+                    httpOnly: true,
+                    maxAge: maxAge * 1000, // 3hrs in ms
+                })
                 res.status(200).json({
                     message: "User created successfully",
-                    user,
+                    user: user._id,
                 })
             }).catch( error => {
                 res.status(400).json({
