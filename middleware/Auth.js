@@ -13,7 +13,7 @@ exports.adminAuth = async (req, res, next) => {
             } else {
                 if( decodedToken.role !== "admin") {
                     return res.status(401).json({
-                        message: 'Not authorized.'
+                        message: 'Not authorized. You are not admin.'
                     })
                 } else {
                     next();
@@ -23,6 +23,30 @@ exports.adminAuth = async (req, res, next) => {
     } else {
         return res.status(401).json({
             message: "Not authorized, token not found."
+        })
+    }
+}
+
+exports.userAuth = async (req, res, next) => {
+    const token = req.cookies.token;
+    if( token ) {
+        jwt.verify(token, SECRET_KEY, (error, decodedToken) => {
+            if( error) {
+                return res.status(400).json({
+                    message: "Not authorized, some error occured",
+                    error: error.message
+                })
+            } else {
+                if( decodedToken.role !== 'Basic' ) {
+                    return res.status(401).json({message: 'NOt authorized.YOu need to be a basic user.'})
+                } else {
+                    next();
+                }
+            }
+        })
+    } else {
+        return res.status(400).json({
+            message: "NO token found."
         })
     }
 }
