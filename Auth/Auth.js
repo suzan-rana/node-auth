@@ -13,7 +13,7 @@ const SECRET_KEY = 'ae897635ca091a275aeeba4f322a4f4e21bdfe97e81afde5d169b89f3ac3
 // ----- change a user role, ==> update User Role,
 // ----- delete a user
 
-// we generate a token using jwt.sign({id, username, role}, secret_key, expiresIn) and set a cookie of client using: res.cookie('jwt', token, {options})
+// we generate a token using jwt.sign({id, username, role} ie payload, secret_key, expiresIn) and set a cookie of client using: res.cookie('jwt', token, {options})
 
 
 
@@ -126,8 +126,21 @@ exports.login = async (req, res, next) => {
                     message: "Sorry wrong password",
                 })
             }
+            const maxAge = 3 * 50 * 50;
+            const token = jwt.sign({
+                id: user._id,
+                username,
+                role: user.role,
+            }, SECRET_KEY, {
+                expiresIn: maxAge,
+            })
+            res.cookie('jwt', token, {
+                httpOnly: true,
+                maxAge: maxAge * 1000,
+            } )
             res.status(200).json({
-                message: "Logged in successfully."
+                message: "Logged in successfully.",
+                user: user._id,
             })
         } catch( error) {
             res.status(200).json({
